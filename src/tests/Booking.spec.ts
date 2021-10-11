@@ -1,5 +1,6 @@
 import { Booking } from '../Booking'
 import { BookingRepository } from '../BookingRepository'
+import { BookingProvider, BookingSuccessResult } from '../interfaces/BookingProvider'
 import { BookingRequest } from '../interfaces/BookingRequest'
 import { Logger } from '../Logger'
 import { NotificationService } from '../NotificationService'
@@ -13,7 +14,7 @@ describe('Booking', () => {
       const requestRepository = new RequestRepository()
       jest.spyOn(requestRepository, 'save')
 
-      const booking = createBooking(requestRepository)
+      const booking = createBooking({requestRepository})
       // Act
       await booking.make(request)
       // Assert
@@ -29,21 +30,37 @@ describe('Booking', () => {
      
       jest.spyOn(requestRepository, 'save').mockRejectedValue(new Error(expectedRepoError))
 
-      const booking = createBooking(requestRepository)
+      const booking = createBooking({requestRepository})
 
       // Act
       // Assert
       await expect(() => booking.make(request)).rejects.toThrowError(`Error occurred while trying to make booking: ${expectedRepoError}`)
     })
 
-    function createBooking(requestRepository?: RequestRepository): Booking {
-      requestRepository = requestRepository || new RequestRepository()
+    it('returns expected confirmed booking', async () => {
+      // Arrange
+      const mockedBookingSuccessResult= {...defaultBookingSuccessResult}     
+      const thirdPartyBookingProvider = { makeBooking: jest.fn().mockResolvedValue(mockedBookingSuccessResult) }
+
+      const request = { ...defaultRequest } 
+      const expectedConfirmedBooking = { ...request, ...mockedBookingSuccessResult }
+      const booking = createBooking({thirdPartyBookingProvider})
+
+      // Act
+      const result = await booking.make(request)
+
+      // Assert
+      expect(result).toEqual(expectedConfirmedBooking)
+    })
+
+    function createBooking(dependencies: {requestRepository?:RequestRepository,thirdPartyBookingProvider?:BookingProvider}): Booking {
+      const requestRepository = dependencies.requestRepository || new RequestRepository()
 
       const bookingRepository = new BookingRepository()
       const logger = new Logger()
       const notificationService = new NotificationService()
 
-      const thirdPartyBookingProvider = { makeBooking: jest.fn() }
+      const thirdPartyBookingProvider = dependencies.thirdPartyBookingProvider || { makeBooking: jest.fn() }  
 
       return new Booking(requestRepository, bookingRepository, thirdPartyBookingProvider, notificationService, logger)
     }
@@ -55,5 +72,12 @@ describe('Booking', () => {
     checkIn: new Date(),
     checkOut: new Date(),
     numberOfGuests: 1,
+  }
+
+  const defaultBookingSuccessResult: BookingSuccessResult = {
+    id: 'id',
+    checkInTime: new Date(),
+    roomNumber: 'number 1',
+    price: 34
   }
 })

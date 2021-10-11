@@ -21,7 +21,7 @@ export class Booking {
 
       const bookingResult = await this.registerBooking(bookingRequest)
       const confirmedBooking = { ...bookingRequest, ...bookingResult }
-
+  
       await this.persistBooking(confirmedBooking)
       await this.sendNotification(confirmedBooking)
 
