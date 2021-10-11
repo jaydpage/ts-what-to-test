@@ -26,8 +26,8 @@ export class Booking {
       await this.sendNotification(confirmedBooking)
 
       return confirmedBooking
-    } catch (e) {
-      const errorMessage = `Error occurred while trying to make booking: ${e}`
+    } catch (e : any) {
+      const errorMessage = `Error occurred while trying to make booking: ${e.message}`
       this.logger.error(errorMessage)
       throw Error(errorMessage)
     }

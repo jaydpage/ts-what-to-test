@@ -20,6 +20,22 @@ describe('Booking', () => {
       expect(requestRepository.save).toBeCalledWith(request)
     })
 
+    it('throws exception when saving booking request fails', async () => {
+      // Arrange
+      const requestRepository = new RequestRepository()
+
+      const expectedRepoError = 'I am an error!'      
+      const request = { ...defaultRequest }      
+     
+      jest.spyOn(requestRepository, 'save').mockRejectedValue(new Error(expectedRepoError))
+
+      const booking = createBooking(requestRepository)
+
+      // Act
+      // Assert
+      await expect(() => booking.make(request)).rejects.toThrowError(`Error occurred while trying to make booking: ${expectedRepoError}`)
+    })
+
     function createBooking(requestRepository?: RequestRepository): Booking {
       requestRepository = requestRepository || new RequestRepository()
 
