@@ -1,4 +1,5 @@
 import { BookingRepository } from './BookingRepository'
+import { BookingProvider, BookingSuccessResult, NewBookingRequest } from './interfaces/BookingProvider'
 import { BookingRequest } from './interfaces/BookingRequest'
 import { ConfirmedBooking } from './interfaces/ConfirmedBooking'
 import { Logger } from './Logger'
@@ -15,14 +16,14 @@ export class Booking {
   ) {}
 
   async make(bookingRequest: BookingRequest): Promise<ConfirmedBooking> {
-    await this.persistRequest(bookingRequest)
-
     try {
+      await this.persistRequest(bookingRequest)
+
       const bookingResult = await this.registerBooking(bookingRequest)
       const confirmedBooking = { ...bookingRequest, ...bookingResult }
 
       await this.persistBooking(confirmedBooking)
-      await this.notifyOutCome(confirmedBooking)
+      await this.sendNotification(confirmedBooking)
 
       return confirmedBooking
     } catch (e) {
@@ -48,7 +49,7 @@ export class Booking {
     await this.bookingRepository.save(confirmedBooking)
   }
 
-  private async notifyOutCome(confirmedBooking: ConfirmedBooking) {
+  private async sendNotification(confirmedBooking: ConfirmedBooking) {
     await this.notificationService.send(confirmedBooking)
   }
 }

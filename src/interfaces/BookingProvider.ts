@@ -1,15 +1,15 @@
-interface BookingProvider {
+export declare class BookingProvider {
   makeBooking: (request: NewBookingRequest) => Promise<BookingSuccessResult>
 }
 
-interface BookingSuccessResult {
+export interface BookingSuccessResult {
   id: string
   checkInTime: Date
   roomNumber: string
   price: number
 }
 
-interface NewBookingRequest {
+export interface NewBookingRequest {
   name: string
   idNumber: string
   checkIn: Date
